@@ -1,4 +1,4 @@
-import type { MutableRefObject} from 'react';
+import type { MutableRefObject } from 'react';
 import { useState, useEffect, useRef, useMemo } from 'react';
 
 /**
@@ -20,7 +20,7 @@ interface Props {
   infinite?: boolean;
   loop?: boolean;
   manual?: boolean;
-  timingFunction?: number[]|string;
+  timingFunction?: number[] | string;
   type?: 'in' | 'out';
 }
 const useStepAnimation = (
@@ -70,7 +70,7 @@ const useStepAnimation = (
   // 帧动画执行函数
   const animationFunc = (typeParam = 'in', startTimestamp: DOMHighResTimeStamp) => {
     // 获取当前时间 与 enterTiming对比 超过frameTime则绘制下一帧
-    if (startTimestamp - enterTiming.current >= frameTime) {
+    if (startTimestamp - enterTiming.current >= frameTime || enterTiming.current === 0) {
       enterTiming.current = startTimestamp;
       // 通过离散地移动backgroundPosition跳到下一帧
       if (ref.current) {
@@ -112,14 +112,13 @@ const useStepAnimation = (
       }
     }
     // 继续绘制
-    requestFlag.current = requestAnimationFrame((startTimestamp) => animationFunc(type, startTimestamp));
+    requestFlag.current = requestAnimationFrame((startTimestamp2) =>
+      animationFunc(type, startTimestamp2),
+    );
   };
 
   // 开始绘制
   useEffect(() => {
-    if (!infinite && !type) {
-      return;
-    }
     if (!type) {
       return;
     }
@@ -133,8 +132,10 @@ const useStepAnimation = (
       frameImage.current -= 1;
     }
 
-    enterTiming.current = Date.now();
-    requestFlag.current = requestAnimationFrame((startTimestamp) => animationFunc(type, startTimestamp));
+    // enterTiming.current = Date.now();
+    requestFlag.current = requestAnimationFrame((startTimestamp) =>
+      animationFunc(type, startTimestamp),
+    );
   }, [type]);
 
   // 离开页面停止动画
